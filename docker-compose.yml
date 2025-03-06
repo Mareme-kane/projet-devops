@@ -43,10 +43,12 @@ services:
       - "50000:50000"  # Port pour la communication avec les agents Jenkins
     volumes:
       - jenkins_home:/var/jenkins_home  # Pour persister les données de Jenkins
+      - /var/run/docker.sock:/var/run/docker.sock  # Permet à Jenkins d'utiliser Docker
     networks:
       - app-network
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # Désactive le wizard initial pour une installation rapide
+    entrypoint: /bin/bash -c "apt-get update && apt-get install -y docker-compose && /usr/local/bin/jenkins.sh"  # Installation de docker-compose
 
 volumes:
   jenkins_home:
