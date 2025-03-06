@@ -36,6 +36,21 @@ services:
     networks:
       - app-network
 
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - "8080:8080"  # Port pour accéder à Jenkins via le navigateur
+      - "50000:50000"  # Port pour la communication avec les agents Jenkins
+    volumes:
+      - jenkins_home:/var/jenkins_home  # Pour persister les données de Jenkins
+    networks:
+      - app-network
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # Désactive le wizard initial pour une installation rapide
+
+volumes:
+  jenkins_home:
+
 networks:
   app-network:
     driver: bridge
