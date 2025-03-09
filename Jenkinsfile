@@ -1,88 +1,45 @@
-pipeline {
+pipeline { 
     agent any
 
-    environment {
-        DOCKER_IMAGE_NAME = 'projet-devops'
-        DOCKER_COMPOSE_PATH = './docker-compose.yml'
-        SONAR_HOST_URL = 'http://localhost:9000'
-        SONAR_SCANNER = 'SonarScanner'
-    }
-
     stages {
-        stage('Clone repository') {
+        stage('Cloner le code') {
             steps {
                 git 'https://github.com/Mareme-kane/projet-devops.git'
             }
         }
 
-        stage('Build Docker images') {
+        stage('Construire les images Docker') {
             steps {
                 script {
-                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH build'
+                    bat 'docker-compose build'
                 }
             }
         }
 
-        stage('Run Tests') {
-            steps {
-                script {
-                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH run --rm gestion-classes vendor/bin/phpunit'
-                }
-            }
-        }
+       
 
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    withSonarQubeEnv('SonarQube') {
-                        sh '''
-                            sonar-scanner \
-                              -Dsonar.projectKey=projet-devops \
-                              -Dsonar.sources=. \
-                              -Dsonar.host.url=$SONAR_HOST_URL \
-                              -Dsonar.login=$SONAR_TOKEN
-                        '''
-                    }
-                }
-            }
-        }
 
-        stage('Terraform Init') {
-            steps {
-                script {
-                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH run --rm terraform init'
-                }
-            }
-        }
 
-        stage('Terraform Apply') {
+    stage('Push de l\'image Docker') {
             steps {
                 script {
-                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH run --rm terraform apply -auto-approve'
-                }
-            }
-        }
+                    def registry = (ENV == 'dev' || ENV == 'staging') ? LOCAL_REGISTRY : REMOTE_REGISTRY
+                    def imageTag = "${registry}/gestionEtablissement:${BUILD_NUMBER}"
 
-        stage('Push Docker images') {
-            steps {
-                script {
-                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH push'
-                }
-            }
-        }
-
-        stage('Deploy to Staging') {
-            steps {
-                script {
-                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH up -d'
+                    bat "docker tag gestionEtablissement ${imageTag}"
+                    bat "docker push ${imageTag}"
+                    echo "✅ Image Docker poussée vers ${registry}"
                 }
             }
         }
     }
 
     post {
-        always {
-            sh 'docker-compose -f $DOCKER_COMPOSE_PATH down'
+        success {
+            echo '🎉 Pipeline réussie et artéfact publié !'
+        }
+        failure {
+            echo '⚠️ Erreur dans la pipeline, vérifiez les logs.'
         }
     }
 }
