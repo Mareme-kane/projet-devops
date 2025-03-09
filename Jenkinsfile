@@ -2,23 +2,22 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE_NAME = 'projet-devops'  // Nom de l'image Docker
-        DOCKER_COMPOSE_PATH = './docker-compose.yml'  // Chemin vers ton fichier Docker Compose
-        SONAR_HOST_URL = 'http://localhost:9000'  // URL de SonarQube
-        SONAR_SCANNER = 'SonarScanner'  // Nom du scanner défini dans Jenkins
+        DOCKER_IMAGE_NAME = 'projet-devops'
+        DOCKER_COMPOSE_PATH = './docker-compose.yml'
+        SONAR_HOST_URL = 'http://localhost:9000'
+        SONAR_SCANNER = 'SonarScanner'
     }
 
     stages {
         stage('Clone repository') {
             steps {
-                git 'https://github.com/Mareme-kane/projet-devops.git'  // Ton dépôt GitHub
+                git 'https://github.com/Mareme-kane/projet-devops.git'
             }
         }
 
         stage('Build Docker images') {
             steps {
                 script {
-                    // Construire les images Docker pour chaque microservice
                     sh 'docker-compose -f $DOCKER_COMPOSE_PATH build'
                 }
             }
@@ -27,9 +26,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Exécuter des tests unitaires (exemple avec PHPUnit)
                     sh 'docker-compose -f $DOCKER_COMPOSE_PATH run --rm gestion-classes vendor/bin/phpunit'
-                    // Répéter pour les autres microservices si nécessaire
                 }
             }
         }
@@ -50,10 +47,25 @@ pipeline {
             }
         }
 
+        stage('Terraform Init') {
+            steps {
+                script {
+                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH run --rm terraform init'
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                script {
+                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH run --rm terraform apply -auto-approve'
+                }
+            }
+        }
+
         stage('Push Docker images') {
             steps {
                 script {
-                    // Pousser les images vers le registre Docker (local ou distant)
                     sh 'docker-compose -f $DOCKER_COMPOSE_PATH push'
                 }
             }
@@ -62,9 +74,7 @@ pipeline {
         stage('Deploy to Staging') {
             steps {
                 script {
-                    // Déploiement dans un environnement de staging via Docker ou Kubernetes
-                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH up -d'  // Si tu utilises Docker Compose pour staging
-                    // Ou une commande kubectl si tu utilises Kubernetes
+                    sh 'docker-compose -f $DOCKER_COMPOSE_PATH up -d'
                 }
             }
         }
@@ -72,7 +82,6 @@ pipeline {
 
     post {
         always {
-            // Nettoyer les ressources après le build (supprimer les containers, etc.)
             sh 'docker-compose -f $DOCKER_COMPOSE_PATH down'
         }
     }
