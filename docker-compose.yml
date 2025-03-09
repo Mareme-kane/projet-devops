@@ -2,133 +2,76 @@ version: '3.8'
 
 services:
   gestion-classes:
+    container_name: gestion-classes
     build: ./gestion-classes
     ports:
       - "8001:80"
     networks:
       - app-network
+    restart: unless-stopped
 
   gestion-cours:
+    container_name: gestion-cours
     build: ./gestion-cours
     ports:
       - "8002:80"
     networks:
       - app-network
+    restart: unless-stopped
 
   gestion-professeurs:
+    container_name: gestion-professeurs
     build: ./gestion-professeurs
     ports:
       - "8003:80"
     networks:
       - app-network
+    restart: unless-stopped
 
   gestion-etudiants:
+    container_name: gestion-etudiants
     build: ./gestion-etudiants
     ports:
       - "8004:80"
     networks:
       - app-network
+    restart: unless-stopped
 
   gestion-emploi:
+    container_name: gestion-emploi
     build: ./gestion-emploi
     ports:
       - "8005:80"
     networks:
       - app-network
+    restart: unless-stopped
 
   jenkins:
+    container_name: jenkins
     image: jenkins/jenkins:lts
     ports:
-      - "8080:8080"  # Port pour accéder à Jenkins via le navigateur
-      - "50000:50000"  # Port pour la communication avec les agents Jenkins
+      - "8080:8080"  
+      - "50000:50000"  
     volumes:
-      - jenkins_home:/var/jenkins_home  # Pour persister les données de Jenkins
-      - /var/run/docker.sock:/var/run/docker.sock  # Permet à Jenkins d'utiliser Docker
+      - jenkins_home:/var/jenkins_home  
+      - /var/run/docker.sock:/var/run/docker.sock  
     networks:
       - app-network
     environment:
-      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # Désactive le wizard initial pour une installation rapide
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  
+    restart: unless-stopped
 
   terraform:
-    image: hashicorp/terraform:latest  # Utilisation de l'image officielle de Terraform
     container_name: terraform
+    image: hashicorp/terraform:latest  
     volumes:
-      - .:/workspace  # Monte le répertoire de travail dans le conteneur Terraform
-    working_dir: /workspace  # Définit le répertoire de travail pour Terraform
+      - .:/workspace  
+    working_dir: /workspace  
     networks:
       - app-network
     environment:
-      - TF_VAR_project_name="projet-devops"  # Exemple de variable d'environnement pour Terraform (optionnel)
-    command: ["terraform", "init"]  # Commande par défaut au démarrage (peut être modifiée dans Jenkinsfile)
-
-volumes:
-  jenkins_home:
-
-networks:
-  app-network:
-    driver: bridge
-version: '3.8'
-
-services:
-  gestion-classes:
-    build: ./gestion-classes
-    ports:
-      - "8001:80"
-    networks:
-      - app-network
-
-  gestion-cours:
-    build: ./gestion-cours
-    ports:
-      - "8002:80"
-    networks:
-      - app-network
-
-  gestion-professeurs:
-    build: ./gestion-professeurs
-    ports:
-      - "8003:80"
-    networks:
-      - app-network
-
-  gestion-etudiants:
-    build: ./gestion-etudiants
-    ports:
-      - "8004:80"
-    networks:
-      - app-network
-
-  gestion-emploi:
-    build: ./gestion-emploi
-    ports:
-      - "8005:80"
-    networks:
-      - app-network
-
-  jenkins:
-    image: jenkins/jenkins:lts
-    ports:
-      - "8080:8080"  # Port pour accéder à Jenkins via le navigateur
-      - "50000:50000"  # Port pour la communication avec les agents Jenkins
-    volumes:
-      - jenkins_home:/var/jenkins_home  # Pour persister les données de Jenkins
-      - /var/run/docker.sock:/var/run/docker.sock  # Permet à Jenkins d'utiliser Docker
-    networks:
-      - app-network
-    environment:
-      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # Désactive le wizard initial pour une installation rapide
-
-  terraform:
-    image: hashicorp/terraform:latest  # Utilisation de l'image officielle de Terraform
-    container_name: terraform
-    volumes:
-      - .:/workspace  # Monte le répertoire de travail dans le conteneur Terraform
-    working_dir: /workspace  # Définit le répertoire de travail pour Terraform
-    networks:
-      - app-network
-    environment:
-      - TF_VAR_project_name="projet-devops"  # Exemple de variable d'environnement pour Terraform (optionnel)
-    command: ["terraform", "init"]  # Commande par défaut au démarrage (peut être modifiée dans Jenkinsfile)
+      - TF_VAR_project_name=projet-devops  
+    restart: unless-stopped
 
 volumes:
   jenkins_home:
