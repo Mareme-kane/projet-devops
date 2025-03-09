@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 
 services:
   gestion-classes:
@@ -48,7 +48,6 @@ services:
       - app-network
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # Désactive le wizard initial pour une installation rapide
-    entrypoint: /bin/bash -c "apt-get update && apt-get install -y docker-compose && /usr/local/bin/jenkins.sh"  # Installation de docker-compose
 
 volumes:
   jenkins_home:

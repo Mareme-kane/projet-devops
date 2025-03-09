@@ -4,6 +4,8 @@ pipeline {
     environment {
         DOCKER_IMAGE_NAME = 'projet-devops'  // Nom de l'image Docker
         DOCKER_COMPOSE_PATH = './docker-compose.yml'  // Chemin vers ton fichier Docker Compose
+        SONAR_HOST_URL = 'http://localhost:9000'  // URL de SonarQube
+        SONAR_SCANNER = 'SonarScanner'  // Nom du scanner défini dans Jenkins
     }
 
     stages {
@@ -28,6 +30,22 @@ pipeline {
                     // Exécuter des tests unitaires (exemple avec PHPUnit)
                     sh 'docker-compose -f $DOCKER_COMPOSE_PATH run --rm gestion-classes vendor/bin/phpunit'
                     // Répéter pour les autres microservices si nécessaire
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQube') {
+                        sh '''
+                            sonar-scanner \
+                              -Dsonar.projectKey=projet-devops \
+                              -Dsonar.sources=. \
+                              -Dsonar.host.url=$SONAR_HOST_URL \
+                              -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
                 }
             }
         }
