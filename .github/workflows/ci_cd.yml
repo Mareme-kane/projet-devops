@@ -58,7 +58,7 @@ jobs:
         run: npm test || echo "No frontend tests configured - skipping this step"
         continue-on-error: true
 
-  sonarcloud-analysis:
+          sonarcloud-analysis:
   runs-on: windows-latest
   steps:
     - uses: actions/checkout@v3
@@ -66,13 +66,12 @@ jobs:
         fetch-depth: 0  
 
     - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@v1
-      with:
-        sonar-projectKey: ${{ secrets.SONAR_PROJECT_KEY }}
-        sonar-organization: ${{ secrets.SONAR_ORG }}
+      uses: sonarqube-scan-action@v5.0.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+
 
 
   build-and-deploy:
