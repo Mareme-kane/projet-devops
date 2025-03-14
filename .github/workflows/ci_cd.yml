@@ -13,7 +13,7 @@ jobs:
       - name: 🔎 Verify PHP version and extensions
         run: |
           php -v
-          php -m | findstr fileinfo
+          php -m | grep xdebug
 
       
 
