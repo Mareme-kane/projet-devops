@@ -10,13 +10,18 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+      - name: 🔎 Verify PHP version and extensions
+        run: |
+          php -v
+          php -m | findstr fileinfo
 
+      
 
       - name: 🛠️ Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
-          extensions: mbstring, zip, pdo_mysql,fileinfo
+          php-version: '8.2'
+          extensions: mbstring, zip, pdo_mysql
           coverage: xdebug
 
       - name: 📦 Install all dependencies (including dev)
