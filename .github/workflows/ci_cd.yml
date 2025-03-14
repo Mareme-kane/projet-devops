@@ -26,8 +26,10 @@ jobs:
       - name: 📦 Install all dependencies (including dev)
         run: composer install --prefer-dist --no-progress
 
-      - name: 🔎 Verify PHPUnit installation
-        run: ls -la vendor/bin/
+     - name: 🔎 Verify PHPUnit installation
+      shell: bash
+      run: ls -la vendor/bin/
+
 
       - name: 🏗️ Prepare Laravel Application
         run: |
