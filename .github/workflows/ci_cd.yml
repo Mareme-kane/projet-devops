@@ -10,12 +10,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-      - name: 🔎 Verify PHP version and extensions
-        run: |
-          php -v
-          php -m | grep xdebug
-
-      
 
       - name: 🛠️ Set up PHP
         uses: shivammathur/setup-php@v2
@@ -23,6 +17,11 @@ jobs:
           php-version: '8.3'
           extensions: mbstring, zip, pdo_mysql
           coverage: xdebug
+
+      - name: 🔎 Verify PHP version and extensions
+        run: |
+          php -v
+          php -m | grep xdebug
 
       - name: 📦 Install all dependencies (including dev)
         run: composer install --prefer-dist --no-progress
