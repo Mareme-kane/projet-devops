@@ -14,19 +14,25 @@ jobs:
       - name: 🛠️ Set up PHP
         uses: shivammathur/setup-php@v2
         with:
+<<<<<<< HEAD
           php-version: '8.4'
           extensions: mbstring, zip, pdo_mysql
+=======
+          php-version: '8.4' 
+          extensions: mbstring, zip, pdo_mysql, fileinfo
+>>>>>>> 3afdb0174f69438f621b7e149ea54192d21572b0
           coverage: xdebug
 
       - name: 🔎 Verify PHP version and extensions
         run: |
           php -v
-          php -m | grep xdebug
+          php -m | findstr xdebug
 
       - name: 📦 Install all dependencies (including dev)
         run: composer install --prefer-dist --no-progress
 
       - name: 🔎 Verify PHPUnit installation
+        shell: bash
         run: ls -la vendor/bin/
 
       - name: 🏗️ Prepare Laravel Application
@@ -41,7 +47,12 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
 
       - name: 📦 Install Node.js dependencies
-        run: npm ci || npm install
+        run: npm ci
+        continue-on-error: true
+
+      - name: 📦 Install Node.js dependencies (fallback)
+        run: npm install
+        if: failure()
 
       - name: 📝 Run frontend tests (or skip if not set up)
         run: npm test || echo "No frontend tests configured - skipping this step"
@@ -50,15 +61,15 @@ jobs:
   sonarcloud-analysis:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # Fetches all history for accurate reporting
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  
 
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build-and-deploy:
     needs: [deploy-production, sonarcloud-analysis]
@@ -85,106 +96,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: 📄 Create deployment configuration
+      - name: 📜 Show Laravel Logs (Debugging)
         run: |
-          mkdir -p deploy/nginx/conf.d
+          mkdir -p storage/logs
+          cat storage/logs/laravel.log || echo "No logs found"
 
-          cat > deploy/docker-compose.yml << EOF
-          version: '3'
-
-          services:
-            app:
-              image: ${{ secrets.DOCKERHUB_USERNAME }}/laravel-app:prod-${{ github.sha }}
-              restart: unless-stopped
-              volumes:
-                - ./storage:/var/www/storage
-                - ./uploads:/var/www/public/uploads
-              networks:
-                - app-network
-
-            webserver:
-              image: nginx:alpine
-              restart: unless-stopped
-              ports:
-                - "80:80"
-                - "443:443"
-              volumes:
-                - ./nginx/conf.d:/etc/nginx/conf.d
-              networks:
-                - app-network
-              depends_on:
-                - app
-
-          networks:
-            app-network:
-              driver: bridge
-          EOF
-
-          cat > deploy/nginx/conf.d/app.conf << 'EOF'
-          server {
-              listen 80;
-              server_name _;
-
-              index index.php index.html;
-              root /var/www/public;
-
-              location / {
-                  try_files $uri $uri/ /index.php?$query_string;
-              }
-
-              location ~ \.php$ {
-                  fastcgi_pass app:9000;
-                  fastcgi_index index.php;
-                  fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-                  include fastcgi_params;
-              }
-          }
-          EOF
-
-          cat > deploy/deploy.sh << EOF
-          #!/bin/bash
-          set -e
-
-          mkdir -p storage/app/public storage/framework/cache storage/framework/sessions storage/framework/views storage/logs uploads
-
-          chmod -R 777 storage
-          chmod -R 777 uploads
-
-          docker compose down || true
-          docker compose up -d
-          docker image prune -f
-
-          echo "🚀 Deployment completed successfully!"
-          EOF
-
-          chmod +x deploy/deploy.sh
-
-      - name: 📦 Package Application
-        run: |
-            zip -r laravel-app-prod-${{ github.sha }}.zip .
-
-      - name: 📤 Upload artifact to GitHub Packages
-        uses: actions/upload-artifact@v4
-        with:
-           name: laravel-app-prod-${{ github.sha }}
-           path: laravel-app-prod-${{ github.sha }}.zip
-           if-no-files-found: error
+      - name: 🛡️ Add SSH Known Hosts
+        run: ssh-keyscan -H ec2-13-61-8-178.eu-north-1.compute.amazonaws.com >> ~/.ssh/known_hosts
 
       - name: 🔑 Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: 'ec2-13-61-8-178.eu-north-1.compute.amazonaws.com'
           if_key_exists: replace
-
-      - name: 📥 Download artifact from GitHub Packages
-        uses: actions/download-artifact@v4
-        with:
-            name: laravel-app-prod-${{ github.sha }}
-            path: .
-
-      - name: 🧐 List downloaded files (debugging)
-        run: ls -la
 
       - name: 🚀 Deploy to EC2
         uses: appleboy/scp-action@master
@@ -192,8 +116,8 @@ jobs:
           host: ec2-13-61-8-178.eu-north-1.compute.amazonaws.com
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "laravel-app-prod-${{ github.sha }}.zip"
-          target: "/home/ubuntu"
+          source: "."
+          target: "/home/ubuntu/laravel-app"
 
       - name: ⚙️ Execute remote deployment
         uses: appleboy/ssh-action@master
@@ -202,7 +126,5 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu
-            unzip -o laravel-app-prod-${{ github.sha }}.zip -d laravel-app
-            cd laravel-app/deploy
-            ./deploy.sh
+            cd /home/ubuntu/laravel-app
+            bash deploy/deploy.sh
