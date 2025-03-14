@@ -11,10 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: 🔎 Verify PHP version and extensions
-  run: |
-    php -v
-    php -m | grep fileinfo
-
+        run: |
+          php -v
+          php -m | grep fileinfo
+      
 
       - name: 🛠️ Set up PHP
         uses: shivammathur/setup-php@v2
