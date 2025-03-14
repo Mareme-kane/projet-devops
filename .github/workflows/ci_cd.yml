@@ -13,7 +13,8 @@ jobs:
       - name: 🔎 Verify PHP version and extensions
         run: |
           php -v
-          php -m | grep fileinfo
+          php -m | findstr fileinfo
+
       
 
       - name: 🛠️ Set up PHP
