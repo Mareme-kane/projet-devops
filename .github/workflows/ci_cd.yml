@@ -14,13 +14,9 @@ jobs:
       - name: 🛠️ Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-<<<<<<< HEAD
-          php-version: '8.4'
-          extensions: mbstring, zip, pdo_mysql
-=======
+        
           php-version: '8.4' 
           extensions: mbstring, zip, pdo_mysql, fileinfo
->>>>>>> 3afdb0174f69438f621b7e149ea54192d21572b0
           coverage: xdebug
 
       - name: 🔎 Verify PHP version and extensions
@@ -53,23 +49,21 @@ jobs:
       - name: 📦 Install Node.js dependencies (fallback)
         run: npm install
         if: failure()
-
-      - name: 📝 Run frontend tests (or skip if not set up)
-        run: npm test || echo "No frontend tests configured - skipping this step"
-        continue-on-error: true
-
           sonarcloud-analysis:
-  runs-on: windows-latest
-  steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  
 
-    - name: SonarCloud Scan
-      uses: sonarqube-scan-action@v5.0.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud Scan
+        uses: sonarqube-scan-action@v5.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+
+
 
 
 
