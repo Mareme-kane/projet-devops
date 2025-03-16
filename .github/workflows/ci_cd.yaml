@@ -18,13 +18,10 @@ jobs:
           extensions: mbstring, zip, pdo_mysql
           coverage: xdebug
 
-      - name: Install Composer dependencies
+      - name: Install Composer dependencies (with platform requirements ignored)
         run: |
           composer self-update
-          composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
-
-      - name: 📦 Install all dependencies (including dev)
-        run: composer install --prefer-dist --no-progress --ignore-platform-req=ext-fileinfo
+          composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --ignore-platform-req=ext-fileinfo
 
       - name: 🔎 Verify PHPUnit installation
         run: Get-ChildItem -Path vendor/bin -Force
