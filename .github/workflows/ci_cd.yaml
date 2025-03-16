@@ -23,7 +23,8 @@ jobs:
 
 
       - name: 🔎 Verify PHPUnit installation
-        run: ls -la vendor/bin/
+        run: Get-ChildItem -Path vendor/bin -Force
+
 
       - name: 🏗️ Prepare Laravel Application
         run: |
