@@ -18,18 +18,21 @@ jobs:
           extensions: mbstring, zip, pdo_mysql
           coverage: xdebug
 
+      - name: Install Composer dependencies
+        run: |
+          composer self-update
+          composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
+
       - name: 📦 Install all dependencies (including dev)
         run: composer install --prefer-dist --no-progress --ignore-platform-req=ext-fileinfo
-
 
       - name: 🔎 Verify PHPUnit installation
         run: Get-ChildItem -Path vendor/bin -Force
 
-
       - name: 🏗️ Prepare Laravel Application
         run: |
-         cp .env.example .env
-         php artisan key:generate
+          cp .env.example .env
+          php artisan key:generate
 
       - name: 🧪 Run unit tests
         run: vendor/bin/phpunit
@@ -47,15 +50,15 @@ jobs:
   sonarcloud-analysis:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # Fetches all history for accurate reporting
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetches all history for accurate reporting
 
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build-and-deploy:
     needs: [deploy-production, sonarcloud-analysis]
@@ -158,14 +161,14 @@ jobs:
 
       - name: 📦 Package Application
         run: |
-            zip -r laravel-app-prod-${{ github.sha }}.zip .
+          zip -r laravel-app-prod-${{ github.sha }}.zip .
 
       - name: 📤 Upload artifact to GitHub Packages
         uses: actions/upload-artifact@v4
         with:
-           name: laravel-app-prod-${{ github.sha }}
-           path: laravel-app-prod-${{ github.sha }}.zip
-           if-no-files-found: error
+          name: laravel-app-prod-${{ github.sha }}
+          path: laravel-app-prod-${{ github.sha }}.zip
+          if-no-files-found: error
 
       - name: 🔑 Install SSH key
         uses: shimataro/ssh-key-action@v2
@@ -177,8 +180,8 @@ jobs:
       - name: 📥 Download artifact from GitHub Packages
         uses: actions/download-artifact@v4
         with:
-            name: laravel-app-prod-${{ github.sha }}
-            path: .
+          name: laravel-app-prod-${{ github.sha }}
+          path: .
 
       - name: 🧐 List downloaded files (debugging)
         run: ls -la
